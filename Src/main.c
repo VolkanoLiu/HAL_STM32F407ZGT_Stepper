@@ -220,13 +220,43 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+static uint8_t StepperStatus[8] = {
+  1 << 3 | 0 << 2 | 0 << 1 | 0 << 0,
+  1 << 3 | 1 << 2 | 0 << 1 | 0 << 0,
+  0 << 3 | 1 << 2 | 0 << 1 | 0 << 0,
+  0 << 3 | 1 << 2 | 1 << 1 | 0 << 0,
+  0 << 3 | 0 << 2 | 1 << 1 | 0 << 0,
+  0 << 3 | 0 << 2 | 1 << 1 | 1 << 0,
+  0 << 3 | 0 << 2 | 0 << 1 | 1 << 0,
+  1 << 3 | 0 << 2 | 0 << 1 | 1 << 0,
+};
+
+void GPIO_SetStatus(uint8_t count)
+{
+  for (int i = 0; i < 4; i ++)
+  {
+    HAL_GPIO_WritePin(PWM_A_GPIO_Port, PWM_A_Pin, (StepperStatus[count] >> 3) & 1);
+    HAL_GPIO_WritePin(PWM_C_GPIO_Port, PWM_C_Pin, (StepperStatus[count] >> 2) & 1);
+    HAL_GPIO_WritePin(PWM_B_GPIO_Port, PWM_B_Pin, (StepperStatus[count] >> 1) & 1);
+    HAL_GPIO_WritePin(PWM_D_GPIO_Port, PWM_D_Pin, (StepperStatus[count] >> 0) & 1);
+  }
+}
+
 void HAL_TIM_PeriodElapsedCallback (TIM_HandleTypeDef *htim)
 {
-  static uint8_t count;
-  if(htim == (&htim3))
+  static uint8_t count = 7;
+  if (htim == (&htim3))
   {
-    // TODO: Drive the stepper
+    if (count == 7)
+    {
+      count = 0;
+    }
+    else
+    {
+      count++;
+    }
   }
+  GPIO_SetStatus(count);
 }
 /* USER CODE END 4 */
 
