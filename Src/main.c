@@ -221,6 +221,7 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 static uint8_t StepperStatus[8] = {
+// PWM_A |  PWM_C |  PWM_B |  PWM_D
   1 << 3 | 0 << 2 | 0 << 1 | 0 << 0,
   1 << 3 | 1 << 2 | 0 << 1 | 0 << 0,
   0 << 3 | 1 << 2 | 0 << 1 | 0 << 0,
