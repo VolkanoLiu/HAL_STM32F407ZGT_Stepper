@@ -252,12 +252,14 @@ HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
   if (GPIO_Pin == KEY0_Pin)
   {
+    // If KEY0 is pushed, the stepper and TIM# will switch their status
     HAL_GPIO_WritePin(_RSTAB_GPIO_Port, _RSTAB_Pin, HAL_GPIO_ReadPin(_RSTAB_GPIO_Port, _RSTAB_Pin) ^ GPIO_PIN_SET);
     HAL_GPIO_WritePin(_RSTCD_GPIO_Port, _RSTCD_Pin, HAL_GPIO_ReadPin(_RSTCD_GPIO_Port, _RSTCD_Pin) ^ GPIO_PIN_SET);
+    HAL_GPIO_ReadPin(_RSTAB_GPIO_Port, _RSTAB_Pin) ? HAL_TIM_Base_Start_IT(&htim3) : HAL_TIM_Base_Stop_IT(&htim3);
   }
 }
 
-static uint8_t StepperStatus[8] = {
+static uint8_t StepperStatus[4] = {
 // PWM_A |  PWM_C |  PWM_B |  PWM_D
   1 << 3 | 0 << 2 | 0 << 1 | 0 << 0,
   0 << 3 | 1 << 2 | 0 << 1 | 0 << 0,
@@ -265,7 +267,16 @@ static uint8_t StepperStatus[8] = {
   0 << 3 | 0 << 2 | 0 << 1 | 1 << 0,
 };
 
-void GPIO_SetStatus(uint8_t step_count)
+/**
+ * @brief  Write the GPIO_Pin according to the step_count.
+ * 
+ * @note   This function can control the DRV8432 to drive the 4 wire 2 phase stepper. I use the
+ *         uint8_t array StepperStatus[TOTAL_STEPS] to store the GPIO_PIN_SET/RESET sequence, and
+ *         you can modify it to drive more types of chips and motors. 
+ * @param  step_count specifies the next Pin state.
+ * @retval None
+ */
+void GPIO_SetStepperStatus(uint8_t step_count)
 {
   for (int i = 0; i < 4; i ++)
   {
@@ -283,7 +294,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   if (htim == (&htim3))
   {
     count++;
-    GPIO_SetStatus(count & 0x03);
+    GPIO_SetStepperStatus(count & 0x03);
   }
 }
 /* USER CODE END 4 */
