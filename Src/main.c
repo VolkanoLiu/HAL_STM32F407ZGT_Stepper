@@ -246,17 +246,7 @@ void GPIO_SetStatus(uint8_t count)
 void HAL_TIM_PeriodElapsedCallback (TIM_HandleTypeDef *htim)
 {
   static uint8_t count = 7;
-  if (htim == (&htim3))
-  {
-    if (count == 7)
-    {
-      count = 0;
-    }
-    else
-    {
-      count++;
-    }
-  }
+  count++;
   GPIO_SetStatus(count);
 }
 /* USER CODE END 4 */
