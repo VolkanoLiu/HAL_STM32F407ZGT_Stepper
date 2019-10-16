@@ -92,7 +92,7 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_Base_Start(&htim3);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -167,7 +167,7 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 13999;
+  htim3.Init.Prescaler = 1399;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim3.Init.Period = 99;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -188,7 +188,8 @@ static void MX_TIM3_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN TIM3_Init 2 */
-
+  HAL_TIM_Base_Start(&htim3);
+  HAL_TIM_Base_Start_IT(&htim3);
   /* USER CODE END TIM3_Init 2 */
 
 }
@@ -232,22 +233,26 @@ static uint8_t StepperStatus[8] = {
   1 << 3 | 0 << 2 | 0 << 1 | 1 << 0,
 };
 
-void GPIO_SetStatus(uint8_t count)
+void GPIO_SetStatus(uint8_t step_count)
 {
   for (int i = 0; i < 4; i ++)
   {
-    HAL_GPIO_WritePin(PWM_A_GPIO_Port, PWM_A_Pin, (StepperStatus[count] >> 3) & 1);
-    HAL_GPIO_WritePin(PWM_C_GPIO_Port, PWM_C_Pin, (StepperStatus[count] >> 2) & 1);
-    HAL_GPIO_WritePin(PWM_B_GPIO_Port, PWM_B_Pin, (StepperStatus[count] >> 1) & 1);
-    HAL_GPIO_WritePin(PWM_D_GPIO_Port, PWM_D_Pin, (StepperStatus[count] >> 0) & 1);
+    HAL_GPIO_WritePin(PWM_A_GPIO_Port, PWM_A_Pin, (StepperStatus[step_count] >> 3) & 1);
+    HAL_GPIO_WritePin(PWM_C_GPIO_Port, PWM_C_Pin, (StepperStatus[step_count] >> 2) & 1);
+    HAL_GPIO_WritePin(PWM_B_GPIO_Port, PWM_B_Pin, (StepperStatus[step_count] >> 1) & 1);
+    HAL_GPIO_WritePin(PWM_D_GPIO_Port, PWM_D_Pin, (StepperStatus[step_count] >> 0) & 1);
   }
 }
 
-void HAL_TIM_PeriodElapsedCallback (TIM_HandleTypeDef *htim)
+static uint8_t count = 7;
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-  static uint8_t count = 7;
-  count++;
-  GPIO_SetStatus(count);
+  if (htim == (&htim3))
+  {
+    count++;
+    GPIO_SetStatus(count & 0x0F);
+  }
 }
 /* USER CODE END 4 */
 
