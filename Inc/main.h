@@ -60,6 +60,9 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define _RSTCD_Pin GPIO_PIN_2
 #define _RSTCD_GPIO_Port GPIOE
+#define KEY0_Pin GPIO_PIN_4
+#define KEY0_GPIO_Port GPIOE
+#define KEY0_EXTI_IRQn EXTI4_IRQn
 #define PWM_A_Pin GPIO_PIN_3
 #define PWM_A_GPIO_Port GPIOB
 #define PWM_B_Pin GPIO_PIN_5

@@ -92,7 +92,12 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-
+  HAL_GPIO_WritePin(PWM_A_GPIO_Port, PWM_A_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(PWM_B_GPIO_Port, PWM_B_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(PWM_C_GPIO_Port, PWM_C_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(PWM_D_GPIO_Port, PWM_D_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(_RSTAB_GPIO_Port, _RSTAB_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(_RSTCD_GPIO_Port, _RSTCD_Pin, GPIO_PIN_SET);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -169,7 +174,7 @@ static void MX_TIM3_Init(void)
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 699;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 99;
+  htim3.Init.Period = 199;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
@@ -222,6 +227,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : KEY0_Pin */
+  GPIO_InitStruct.Pin = KEY0_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(KEY0_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pins : PWM_A_Pin PWM_B_Pin PWM_C_Pin PWM_D_Pin */
   GPIO_InitStruct.Pin = PWM_A_Pin|PWM_B_Pin|PWM_C_Pin|PWM_D_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -229,21 +240,29 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  HAL_GPIO_WritePin(_RSTAB_GPIO_Port, _RSTAB_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(_RSTCD_GPIO_Port, _RSTCD_Pin, GPIO_PIN_SET);
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI4_IRQn, 1, 0);
+  HAL_NVIC_EnableIRQ(EXTI4_IRQn);
+
 }
 
 /* USER CODE BEGIN 4 */
+
+HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  if (GPIO_Pin == KEY0_Pin)
+  {
+    HAL_GPIO_WritePin(_RSTAB_GPIO_Port, _RSTAB_Pin, HAL_GPIO_ReadPin(_RSTAB_GPIO_Port, _RSTAB_Pin) ^ GPIO_PIN_SET);
+    HAL_GPIO_WritePin(_RSTCD_GPIO_Port, _RSTCD_Pin, HAL_GPIO_ReadPin(_RSTCD_GPIO_Port, _RSTCD_Pin) ^ GPIO_PIN_SET);
+  }
+}
+
 static uint8_t StepperStatus[8] = {
 // PWM_A |  PWM_C |  PWM_B |  PWM_D
   1 << 3 | 0 << 2 | 0 << 1 | 0 << 0,
-  1 << 3 | 1 << 2 | 0 << 1 | 0 << 0,
   0 << 3 | 1 << 2 | 0 << 1 | 0 << 0,
-  0 << 3 | 1 << 2 | 1 << 1 | 0 << 0,
   0 << 3 | 0 << 2 | 1 << 1 | 0 << 0,
-  0 << 3 | 0 << 2 | 1 << 1 | 1 << 0,
   0 << 3 | 0 << 2 | 0 << 1 | 1 << 0,
-  1 << 3 | 0 << 2 | 0 << 1 | 1 << 0,
 };
 
 void GPIO_SetStatus(uint8_t step_count)
@@ -257,14 +276,14 @@ void GPIO_SetStatus(uint8_t step_count)
   }
 }
 
-static uint8_t count = 7;
+static uint8_t count = 3;
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   if (htim == (&htim3))
   {
     count++;
-    GPIO_SetStatus(count & 0x0F);
+    GPIO_SetStatus(count & 0x03);
   }
 }
 /* USER CODE END 4 */
