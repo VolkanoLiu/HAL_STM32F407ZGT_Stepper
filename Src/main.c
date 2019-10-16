@@ -167,7 +167,7 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 1399;
+  htim3.Init.Prescaler = 699;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim3.Init.Period = 99;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -204,12 +204,23 @@ static void MX_GPIO_Init(void)
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOE, _RSTCD_Pin|_RSTAB_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, PWM_A_Pin|PWM_B_Pin|PWM_C_Pin|PWM_D_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : _RSTCD_Pin _RSTAB_Pin */
+  GPIO_InitStruct.Pin = _RSTCD_Pin|_RSTAB_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PWM_A_Pin PWM_B_Pin PWM_C_Pin PWM_D_Pin */
   GPIO_InitStruct.Pin = PWM_A_Pin|PWM_B_Pin|PWM_C_Pin|PWM_D_Pin;
@@ -218,6 +229,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+  HAL_GPIO_WritePin(_RSTAB_GPIO_Port, _RSTAB_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(_RSTCD_GPIO_Port, _RSTCD_Pin, GPIO_PIN_SET);
 }
 
 /* USER CODE BEGIN 4 */
