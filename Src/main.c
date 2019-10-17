@@ -92,12 +92,15 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
+
+  // Initialize GPIO Pins.
   HAL_GPIO_WritePin(PWM_A_GPIO_Port, PWM_A_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(PWM_B_GPIO_Port, PWM_B_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(PWM_C_GPIO_Port, PWM_C_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(PWM_D_GPIO_Port, PWM_D_Pin, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(_RSTAB_GPIO_Port, _RSTAB_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(_RSTCD_GPIO_Port, _RSTCD_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(_RSTAB_GPIO_Port, _RSTAB_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(_RSTCD_GPIO_Port, _RSTCD_Pin, GPIO_PIN_RESET);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -172,9 +175,9 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 699;
+  htim3.Init.Prescaler = 6999;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 199;
+  htim3.Init.Period = 7;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
@@ -193,8 +196,11 @@ static void MX_TIM3_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN TIM3_Init 2 */
+  
+  // Enable TIM3 interrupt
   HAL_TIM_Base_Start(&htim3);
   HAL_TIM_Base_Start_IT(&htim3);
+
   /* USER CODE END TIM3_Init 2 */
 
 }
@@ -259,6 +265,7 @@ HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   }
 }
 
+// Record the step sequence of stepper motor, which can be modified.
 static uint8_t StepperStatus[4] = {
 // PWM_A |  PWM_C |  PWM_B |  PWM_D
   1 << 3 | 0 << 2 | 0 << 1 | 0 << 0,
@@ -273,21 +280,18 @@ static uint8_t StepperStatus[4] = {
  * @note   This function can control the DRV8432 to drive the 4 wire 2 phase stepper. I use the
  *         uint8_t array StepperStatus[TOTAL_STEPS] to store the GPIO_PIN_SET/RESET sequence, and
  *         you can modify it to drive more types of chips and motors. 
- * @param  step_count specifies the next Pin state.
+ * @param  step_count: Specifies the next Pin state.
  * @retval None
  */
 void GPIO_SetStepperStatus(uint8_t step_count)
 {
-  for (int i = 0; i < 4; i ++)
-  {
     HAL_GPIO_WritePin(PWM_A_GPIO_Port, PWM_A_Pin, (StepperStatus[step_count] >> 3) & 1);
     HAL_GPIO_WritePin(PWM_C_GPIO_Port, PWM_C_Pin, (StepperStatus[step_count] >> 2) & 1);
     HAL_GPIO_WritePin(PWM_B_GPIO_Port, PWM_B_Pin, (StepperStatus[step_count] >> 1) & 1);
     HAL_GPIO_WritePin(PWM_D_GPIO_Port, PWM_D_Pin, (StepperStatus[step_count] >> 0) & 1);
-  }
 }
 
-static uint8_t count = 3;
+static uint8_t count = 0;
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
