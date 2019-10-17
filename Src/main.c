@@ -301,6 +301,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
     GPIO_SetStepperStatus(count & 0x03);
   }
 }
+
+// In memory of my first shanized(单化) STM32 MCU for unknown reasons.
+
 /* USER CODE END 4 */
 
 /**
